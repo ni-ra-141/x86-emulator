@@ -1,0 +1,50 @@
+# ============================================================================
+# Worklet 1 build  -  `make test` builds + runs every task's tests, `make demo` runs the listing demo
+# ============================================================================
+CXX      ?= g++
+CXXFLAGS ?= -std=c++17 -Wall -Wextra -O2
+BUILD    := build
+
+T1 := task1_cpu_segmentation/cpu_state.cpp task1_cpu_segmentation/memory.cpp task1_cpu_segmentation/flags.cpp
+T2 := task2_fetch_queue/fetcher.cpp task2_fetch_queue/instruction_queue.cpp
+T3 := task3_decoder/decoder.cpp
+T4 := task4_instruction_dispatch/instruction.cpp task4_instruction_dispatch/opcode_table.cpp \
+      task4_instruction_dispatch/dispatch_table.cpp task4_instruction_dispatch/w1_pipeline.cpp
+
+ALL := $(T1) $(T2) $(T3) $(T4)
+
+.PHONY: all test demo validate clean test1 test2 test3 test4
+all: $(BUILD)/w1_demo $(BUILD)/test_task1 $(BUILD)/test_task2 $(BUILD)/test_task3 $(BUILD)/test_task4
+
+$(BUILD):
+	mkdir -p $(BUILD)
+
+# each task's tests only link what that task (and its dependencies) needs
+$(BUILD)/test_task1: task1_cpu_segmentation/tests/test_task1.cpp $(T1) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BUILD)/test_task2: task2_fetch_queue/tests/test_task2.cpp $(T2) $(T1) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BUILD)/test_task3: task3_decoder/tests/test_task3.cpp $(T3) task4_instruction_dispatch/instruction.cpp task4_instruction_dispatch/opcode_table.cpp | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BUILD)/test_task4: task4_instruction_dispatch/tests/test_task4.cpp $(ALL) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BUILD)/w1_demo: task4_instruction_dispatch/main.cpp $(ALL) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BUILD)/sweep_lengths: tools/sweep_lengths.cpp $(T3) task4_instruction_dispatch/instruction.cpp task4_instruction_dispatch/opcode_table.cpp | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+test1: $(BUILD)/test_task1 ; ./$(BUILD)/test_task1
+test2: $(BUILD)/test_task2 ; ./$(BUILD)/test_task2
+test3: $(BUILD)/test_task3 ; ./$(BUILD)/test_task3
+test4: $(BUILD)/test_task4 ; ./$(BUILD)/test_task4
+
+test: test1 test2 test3 test4
+
+demo: $(BUILD)/w1_demo ; ./$(BUILD)/w1_demo
+
+# optional: cross-check the decoder against GNU objdump (needs binutils + python3)
+validate: $(BUILD)/w1_demo $(BUILD)/sweep_lengths
+	python3 tools/validate_with_objdump.py
+	python3 tools/sweep_validate.py
+
+clean: ; rm -rf $(BUILD)
