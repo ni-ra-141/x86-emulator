@@ -1,16 +1,21 @@
-# Worklet 1 - 8086 Machine Model + Instruction Decoding (front end)
+# 8086-Style x86 Emulator
 
-**Question W1 answers:** *"What instruction do these bytes represent?"*
+This project models 16-bit 8086 CPU state, fetches and decodes instructions, and executes a documented subset through Worklet 2 handlers. It is a staged emulator implementation, not a complete x86 emulator or a claim of full 8086 compatibility.
+
+**Worklet 1 answers:** *"What instruction do these bytes represent?"* Worklet 2 answers: *"What does this decoded instruction do to CPU state?"*
 
 ```
- memory ──► [Task 2 Fetcher + 8-byte queue] ──► [Task 3 Decoder] ──► DecodedInstruction ──► W2
+ memory ──► [Task 2 Fetcher + 8-byte queue] ──► [Task 3 Decoder] ──► DecodedInstruction
    ▲                  ▲                              ▲  uses
    │                  │ CS:IP                        └── Task 4 opcode table
  [Task 1 CPUState: registers, FLAGS, segmentation, 1 MB memory, stack]
                           Task 4 also owns: DecodedInstruction, DispatchTable, Worklet1 (integration)
+                                                            │
+                                                            ▼
+                                  [Worklet 2 operands + instruction execution handlers]
 ```
 
-## Folder layout (one folder per team member)
+## Folder layout
 
 | Folder | Member | Files | Delivers |
 |---|---|---|---|
@@ -18,18 +23,23 @@
 | `task2_fetch_queue/` | **B** | `instruction_queue.hpp/.cpp` `fetcher.hpp/.cpp` | Circular prefetch queue, CS:IP fetching, `consume()` advances IP, **auto-flush on jumps** |
 | `task3_decoder/` | **C** | `decoder.hpp/.cpp` | prefix → opcode → ModR/M → displacement → immediate → length. Pure function: bytes in, `DecodeResult` out |
 | `task4_instruction_dispatch/` | **D** | `instruction.hpp/.cpp` `opcode_table.hpp/.cpp` `dispatch_table.hpp/.cpp` `w1_pipeline.hpp/.cpp` `main.cpp` | **DecodedInstruction** (contract #2), opcode table, hash-map **DispatchTable** (contract #3), `Worklet1` integration class, demo, validation suite |
+| `worklet2/` | - | `execution.hpp/.cpp` `operands.hpp/.cpp` `tests/` | Operand reads/writes, effective addresses, flag helpers, and registered instruction execution handlers |
 | `common/mini_test.hpp` | - | | tiny test framework (no external libs) |
 | `tools/` | - | | objdump cross-check scripts |
 
-Include rule (keeps dependencies one-directional): Task 2 → Task 1; Task 4 → Task 1; Task 3 → Task 4 (+1); `w1_pipeline` → all.
+Include rule (keeps dependencies one-directional): Task 2 → Task 1; Task 4 → Task 1; Task 3 → Task 4 (+1); `w1_pipeline` integrates Worklet 1; Worklet 2 consumes its CPU and decoded-instruction interfaces.
 
 ## Build / test / demo
 
 ```bash
-make test       # builds and runs all 4 unit-test suites (59 tests)
+make test       # builds and runs all 5 unit-test suites (87 tests)
+make testw2     # builds and runs the Worklet 2 suite
 make demo       # decodes two sample programs and prints a listing
 make validate   # optional: compares decoder with GNU objdump (needs binutils + python3)
-# or:  mkdir b && cd b && cmake .. && make && ctest
+# or, from the repository root:
+cmake -S . -B build-cmake
+cmake --build build-cmake -j2
+ctest --test-dir build-cmake --output-on-failure
 ./build/w1_demo prog.bin     # decode any raw 8086 binary
 ```
 
@@ -42,7 +52,7 @@ Sample output:
 
 ## Validation done
 
-* 59 unit tests (all pass).
+* 87 unit tests across five suites (all pass in the current repository state: Task 1 13, Task 2 10, Task 3 25, Task 4 12, Worklet 2 27).
 * **111 hand-written instruction vectors** agree with `objdump -D -b binary -m i8086 -M intel`.
 * **3038 opcode × ModR/M combinations** swept: every combination our decoder accepts has the same
   length and validity as objdump. (Length is what makes IP advance correctly.)
@@ -60,14 +70,16 @@ Sample output:
    `using Handler = void(*)(CPUState&, const DecodedInstruction&);`
    W2 does `table.registerHandler(Mnemonic::MOV, executeMov);`
 
-### How W2 / W3 plug in
+### How Worklet 2 and an execution-loop caller plug in
 ```cpp
+#include "worklet2/execution.hpp"
+
 CPUState cpu;
 Worklet1 w1(cpu);
 w1.loadProgram(0x0100, 0x0000, bytes);
-w1.dispatchTable().registerHandler(Mnemonic::MOV, executeMov);   // W2
+registerExecutionHandlers(w1);                         // Worklet 2
 
-while (running) {                                  // W3
+while (running) {                                     // caller-supplied loop
     DecodedInstruction in = w1.fetchDecode();      // FETCH + DECODE; IP already = next instruction
     w1.dispatchTable().execute(cpu, in);           // DISPATCH + EXECUTE
     trace(cpu, in);
@@ -76,18 +88,29 @@ while (running) {                                  // W3
 Handler rules: `cpu.regs.ip` already points to the *next* instruction; a jump just assigns
 `cpu.regs.ip = in.branchTarget()`; the fetcher flushes its queue by itself. Errors are `throw EmuError(kind, msg)`.
 
-## Supported instruction subset (extend in `opcode_table.cpp`, one line each)
+## Implemented instruction subset
 
-MOV (all forms incl. segment regs, moffs, imm) · XCHG · LEA · PUSH/POP (reg, sreg, r/m) · PUSHF/POPF/SAHF/LAHF ·
-ADD OR ADC SBB AND SUB XOR CMP TEST (all encodings, groups 80/81/83) · INC DEC NOT NEG MUL IMUL DIV IDIV CBW CWD ·
-ROL ROR RCL RCR SHL SHR SAR (by 1 or CL) · JMP CALL RET (near, direct + indirect, RET imm) · all 16 Jcc · LOOP/LOOPE/LOOPNE/JCXZ ·
-INT n / IRET · MOVS CMPS STOS LODS SCAS with REP/REPNE · NOP HLT CLC STC CMC CLI STI CLD STD ·
-prefixes: ES:/CS:/SS:/DS: overrides, LOCK, REP/REPNE.
+Worklet 1 supplies the documented 8086-style decoding and dispatch interfaces. Worklet 2 currently registers handlers for:
 
-Valid-8086-but-outside-subset opcodes (far CALL/JMP/RET, IN/OUT, BCD adjust, XLAT, LDS/LES, ESC, INT3/INTO) return
-`UnsupportedInstruction`; non-8086 opcodes return `InvalidOpcode`; truncated bytes return `Incomplete`. Nothing crashes.
+* **Data and addressing:** MOV, XCHG, LEA, PUSH, POP.
+* **FLAGS and basic operations:** PUSHF, POPF, SAHF, LAHF, NOP, HLT, CLC, STC, CMC, CLI, STI, CLD, STD.
+* **Arithmetic and logic:** ADD, ADC, SUB, SBB, AND, OR, XOR, CMP, TEST, INC, DEC, NOT, NEG, MUL, IMUL, DIV, IDIV, CBW, CWD.
+* **Shifts and rotates:** ROL, ROR, RCL, RCR, SHL, SHR, SAR (count 1 or CL).
+* **Control flow:** near JMP, CALL, RET (including RET imm), all 16 Jcc conditions, LOOP, LOOPE/LOOPZ, LOOPNE/LOOPNZ, JCXZ, INT n, IRET.
+* **Strings:** MOVS, CMPS, STOS, LODS, SCAS with REP/REPNE handling.
 
-## Design decisions worth knowing (viva-ready)
+The decoder recognizes segment overrides (ES:/CS:/SS:/DS:) and REP/REPNE prefixes. Worklet 2 applies segment overrides to string source operands; string destinations remain ES. LOCK is not executed: invalid LOCK uses report `InvalidEncoding`, and valid memory read-modify-write forms report `UnsupportedInstruction`.
+
+The listed handlers and tests cover selected behavior; they do not establish every encoding, edge case, or full 8086 compatibility. The README subset excludes far CALL/JMP/RET, I/O, BCD adjustment, XLAT, LDS/LES, ESC, INT3, and INTO. The opcode table explicitly marks selected valid out-of-subset instructions (including far CALL/JMP/RET and I/O) as `UnsupportedInstruction`; opcode bytes classified as invalid return `InvalidOpcode`. Truncated instructions return `Incomplete`. The decoder does not classify every valid 8086 instruction outside the subset as unsupported: unlisted opcode bytes default to `InvalidOpcode`.
+
+Important execution limitations:
+
+* HLT sets `CPUState::halted`, but a complete execution loop that stops on HLT is not implemented here.
+* REP string operations run synchronously inside one handler call; asynchronous interrupt delivery between iterations is not modeled. Simultaneous REP and REPNE prefixes are rejected because the decoder does not preserve their order.
+* Software INT/IRET use an 8086-style vector table and stack frame, but hardware interrupt delivery and timing are not modeled.
+* Architecturally undefined flag results, quotient-overflow error categorization, and LOCK atomicity have documented implementation limitations; see [`WORKLET2_STATUS.md`](WORKLET2_STATUS.md) for test coverage and remaining unverified cases.
+
+## Design Decisions and Implementation Details
 
 * **No SIB byte.** SIB was introduced with the 386. The 8086 encodes every memory mode in ModR/M alone
   (`[BX+SI] [BX+DI] [BP+SI] [BP+DI] [SI] [DI] [BP]/[disp16] [BX]` + disp8/disp16), so the SIB step is intentionally absent.
