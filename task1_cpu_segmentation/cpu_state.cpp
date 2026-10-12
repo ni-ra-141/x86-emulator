@@ -5,6 +5,7 @@
 namespace emu {
 
 void CPUState::reset() {
+    halted = false;
     regs.reset();
     flags.clearAll();
     memory.clear();

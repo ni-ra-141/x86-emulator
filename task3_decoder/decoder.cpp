@@ -201,8 +201,9 @@ DecodeResult Decoder::decode(const uint8_t* bytes, std::size_t available, uint16
         case Form::RM16_IMM16:in.dst = buildRM(rd, m, 16, pf); in.src = Operand::makeImm16(rd.u16()); break;
         case Form::RM16_IMM8SX: {
             in.dst = buildRM(rd, m, 16, pf);
-            int8_t imm = static_cast<int8_t>(rd.u8());
-            in.src = Operand::makeImm16(static_cast<uint16_t>(static_cast<int16_t>(imm)));  // sign-extended
+            uint8_t imm = rd.u8();
+            uint16_t extended = (imm & 0x80u) ? static_cast<uint16_t>(0xff00u | imm) : imm;
+            in.src = Operand::makeImm16(extended);  // sign-extended without out-of-range signed conversion
             break;
         }
 

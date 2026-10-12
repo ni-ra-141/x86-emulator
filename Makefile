@@ -13,8 +13,8 @@ T4 := task4_instruction_dispatch/instruction.cpp task4_instruction_dispatch/opco
 
 ALL := $(T1) $(T2) $(T3) $(T4)
 
-.PHONY: all test demo validate clean test1 test2 test3 test4
-all: $(BUILD)/w1_demo $(BUILD)/test_task1 $(BUILD)/test_task2 $(BUILD)/test_task3 $(BUILD)/test_task4
+.PHONY: all test demo validate clean test1 test2 test3 test4 testw2
+all: $(BUILD)/w1_demo $(BUILD)/test_task1 $(BUILD)/test_task2 $(BUILD)/test_task3 $(BUILD)/test_task4 $(BUILD)/test_worklet2
 
 $(BUILD):
 	mkdir -p $(BUILD)
@@ -28,6 +28,8 @@ $(BUILD)/test_task3: task3_decoder/tests/test_task3.cpp $(T3) task4_instruction_
 	$(CXX) $(CXXFLAGS) -o $@ $^
 $(BUILD)/test_task4: task4_instruction_dispatch/tests/test_task4.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BUILD)/test_worklet2: worklet2/tests/test_execution.cpp worklet2/execution.cpp worklet2/operands.cpp $(ALL) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 $(BUILD)/w1_demo: task4_instruction_dispatch/main.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 $(BUILD)/sweep_lengths: tools/sweep_lengths.cpp $(T3) task4_instruction_dispatch/instruction.cpp task4_instruction_dispatch/opcode_table.cpp | $(BUILD)
@@ -37,8 +39,9 @@ test1: $(BUILD)/test_task1 ; ./$(BUILD)/test_task1
 test2: $(BUILD)/test_task2 ; ./$(BUILD)/test_task2
 test3: $(BUILD)/test_task3 ; ./$(BUILD)/test_task3
 test4: $(BUILD)/test_task4 ; ./$(BUILD)/test_task4
+testw2: $(BUILD)/test_worklet2 ; ./$(BUILD)/test_worklet2
 
-test: test1 test2 test3 test4
+test: test1 test2 test3 test4 testw2
 
 demo: $(BUILD)/w1_demo ; ./$(BUILD)/w1_demo
 

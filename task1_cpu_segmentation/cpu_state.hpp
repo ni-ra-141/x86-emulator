@@ -29,6 +29,7 @@ public:
     Registers regs;
     Flags     flags;
     Memory    memory;
+    bool halted = false; // Set by HLT; cleared on reset.
 
     // ---- address translation ----
     uint32_t physicalAddress(SegReg seg, uint16_t offset) const {

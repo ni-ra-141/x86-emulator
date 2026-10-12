@@ -47,3 +47,6 @@ w1_test(test_task4 task4_instruction_dispatch/tests/test_task4.cpp w1_pipeline)
 # ---- demo ----
 add_executable(w1_demo task4_instruction_dispatch/main.cpp)
 target_link_libraries(w1_demo w1_pipeline)
+
+# ---- Worklet 2 execution ----
+add_subdirectory(worklet2)
