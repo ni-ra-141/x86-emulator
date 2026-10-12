@@ -110,6 +110,17 @@ TEST(group1_83_sign_extended_imm8) {
     CHECK(r2.instr.mnemonic == Mnemonic::CMP);
 }
 
+TEST(group83_sign_extension_boundaries_are_portable) {
+    const uint8_t encoded[] = {0x7f, 0x80, 0xff};
+    const uint16_t expected[] = {0x007f, 0xff80, 0xffff};
+    for (std::size_t n = 0; n < 3; ++n) {
+        auto r = dec({0x83, 0xC0, encoded[n]}); // ADD AX, sign-extended imm8
+        CHECK(r.ok());
+        CHECK(r.instr.src.type == OperandType::Imm16);
+        CHECK_EQ(int(r.instr.src.value), int(expected[n]));
+    }
+}
+
 TEST(group_mnemonic_comes_from_modrm_reg) {
     CHECK(dec({0x80, 0xE8, 0x01}).instr.mnemonic == Mnemonic::SUB);   // sub al,1
     CHECK(dec({0xF7, 0xE3}).instr.mnemonic == Mnemonic::MUL);         // mul bx
