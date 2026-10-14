@@ -50,3 +50,22 @@ target_link_libraries(w1_demo w1_pipeline)
 
 # ---- Worklet 2 execution ----
 add_subdirectory(worklet2)
+
+# ---- Worklet 3: Program execution and evaluation ----
+add_library(worklet3_runtime STATIC
+    worklet3/loader.cpp
+    worklet3/tracer.cpp
+    worklet3/runner.cpp
+    worklet3/regression.cpp
+)
+target_link_libraries(worklet3_runtime PUBLIC worklet2_execution)
+
+add_executable(worklet3 worklet3/main.cpp)
+target_link_libraries(worklet3 PRIVATE worklet3_runtime)
+
+add_executable(test_worklet3 worklet3/tests/test_cases.cpp)
+target_compile_definitions(test_worklet3 PRIVATE
+    WORKLET3_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+)
+target_link_libraries(test_worklet3 PRIVATE worklet3_runtime)
+add_test(NAME test_worklet3 COMMAND test_worklet3)
