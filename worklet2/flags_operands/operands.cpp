@@ -1,5 +1,5 @@
 #include "operands.hpp"
-#include "../task1_cpu_segmentation/emu_error.hpp"
+#include "../../task1_cpu_segmentation/emu_error.hpp"
 namespace emu { namespace {
 [[noreturn]] void bad(const char* s) { throw EmuError(ErrorKind::InvalidEncoding, s); }
 uint32_t mask(uint8_t w) { if (w == 8) return 0xffu; if (w == 16) return 0xffffu; bad("unsupported operand width"); }

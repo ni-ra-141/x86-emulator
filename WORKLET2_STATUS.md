@@ -10,7 +10,7 @@ Relevant directories: `task1_cpu_segmentation/`, `task2_fetch_queue/`, `task3_de
 
 ## Registered Worklet 2 handlers
 
-Registration in `worklet2/execution.cpp` currently covers:
+The integration entry point in `worklet2/execution.cpp` delegates registration to four family folders: `alu/`, `flags_operands/`, `movement_stack/`, and `control_flow/`.
 
 - **Data/address:** MOV, XCHG, LEA, PUSH, POP.
 - **FLAGS/basic:** PUSHF, POPF, SAHF, LAHF, NOP, CLC, STC, CMC, CLI, STI, CLD, STD.
@@ -19,7 +19,7 @@ Registration in `worklet2/execution.cpp` currently covers:
 - **Control flow:** JMP, CALL, RET, INT n, IRET, all 16 Jcc conditions, LOOP, LOOPE, LOOPNE, JCXZ, HLT.
 - **Strings:** MOVS, CMPS, STOS, LODS, SCAS, with REP/REPNE handling.
 
-`worklet2/operands.cpp` contains operand access, effective-offset, and logic/add/sub flag helpers. The decoder represents arithmetic opcode forms, groups 80/81/83, F6/F7, and D0–D3. The shift groups encode count 1 or CL; F6/F7 and D0–D3 use ModR/M operands for register or memory targets.
+`worklet2/flags_operands/operands.cpp` contains operand access, effective-offset, and logic/add/sub flag helpers. `execution.hpp` and `registerExecutionHandlers(Worklet1&)` remain the public integration interface. The decoder represents arithmetic opcode forms, groups 80/81/83, F6/F7, and D0–D3. The shift groups encode count 1 or CL; F6/F7 and D0–D3 use ModR/M operands for register or memory targets.
 
 ## Behavior covered by tests
 
