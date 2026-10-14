@@ -13,8 +13,8 @@ T4 := task4_instruction_dispatch/instruction.cpp task4_instruction_dispatch/opco
 
 ALL := $(T1) $(T2) $(T3) $(T4)
 
-.PHONY: all test demo validate clean test1 test2 test3 test4 testw2
-all: $(BUILD)/w1_demo $(BUILD)/test_task1 $(BUILD)/test_task2 $(BUILD)/test_task3 $(BUILD)/test_task4 $(BUILD)/test_worklet2
+.PHONY: all test demo validate clean test1 test2 test3 test4 testw2 testw3 runw3
+all: $(BUILD)/w1_demo $(BUILD)/test_task1 $(BUILD)/test_task2 $(BUILD)/test_task3 $(BUILD)/test_task4 $(BUILD)/test_worklet2 $(BUILD)/test_worklet3 $(BUILD)/worklet3
 
 $(BUILD):
 	mkdir -p $(BUILD)
@@ -41,7 +41,7 @@ test3: $(BUILD)/test_task3 ; ./$(BUILD)/test_task3
 test4: $(BUILD)/test_task4 ; ./$(BUILD)/test_task4
 testw2: $(BUILD)/test_worklet2 ; ./$(BUILD)/test_worklet2
 
-test: test1 test2 test3 test4 testw2
+test: test1 test2 test3 test4 testw2 testw3
 
 demo: $(BUILD)/w1_demo ; ./$(BUILD)/w1_demo
 
@@ -51,3 +51,20 @@ validate: $(BUILD)/w1_demo $(BUILD)/sweep_lengths
 	python3 tools/sweep_validate.py
 
 clean: ; rm -rf $(BUILD)
+
+# ---- Worklet 3: Program execution and evaluation ----
+$(BUILD)/test_worklet3: worklet3/tests/test_cases.cpp \
+    worklet3/loader.cpp worklet3/tracer.cpp worklet3/runner.cpp \
+    worklet3/regression.cpp worklet2/execution.cpp worklet2/operands.cpp $(ALL) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -DWORKLET3_SOURCE_DIR='"$(CURDIR)"' -o $@ $^
+
+$(BUILD)/worklet3: worklet3/main.cpp worklet3/loader.cpp \
+    worklet3/tracer.cpp worklet3/runner.cpp worklet3/regression.cpp \
+    worklet2/execution.cpp worklet2/operands.cpp $(ALL) | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+testw3: $(BUILD)/test_worklet3
+	./$(BUILD)/test_worklet3
+
+runw3: $(BUILD)/worklet3
+	./$(BUILD)/worklet3 $(ARGS)
