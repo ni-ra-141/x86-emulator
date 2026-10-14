@@ -1,6 +1,6 @@
 #include "../../common/mini_test.hpp"
 #include "../execution.hpp"
-#include "../operands.hpp"
+#include "../flags_operands/operands.hpp"
 #include "../../task3_decoder/decoder.hpp"
 #include "../../task1_cpu_segmentation/emu_error.hpp"
 #include <initializer_list>

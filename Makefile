@@ -28,7 +28,7 @@ $(BUILD)/test_task3: task3_decoder/tests/test_task3.cpp $(T3) task4_instruction_
 	$(CXX) $(CXXFLAGS) -o $@ $^
 $(BUILD)/test_task4: task4_instruction_dispatch/tests/test_task4.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -o $@ $^
-$(BUILD)/test_worklet2: worklet2/tests/test_execution.cpp worklet2/execution.cpp worklet2/operands.cpp $(ALL) | $(BUILD)
+$(BUILD)/test_worklet2: worklet2/tests/test_execution.cpp worklet2/execution.cpp worklet2/alu/execution_alu.cpp worklet2/flags_operands/execution_flags.cpp worklet2/flags_operands/operands.cpp worklet2/movement_stack/execution_data.cpp worklet2/control_flow/execution_control.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 $(BUILD)/w1_demo: task4_instruction_dispatch/main.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -o $@ $^
@@ -55,12 +55,12 @@ clean: ; rm -rf $(BUILD)
 # ---- Worklet 3: Program execution and evaluation ----
 $(BUILD)/test_worklet3: worklet3/tests/test_cases.cpp \
     worklet3/loader.cpp worklet3/tracer.cpp worklet3/runner.cpp \
-    worklet3/regression.cpp worklet2/execution.cpp worklet2/operands.cpp $(ALL) | $(BUILD)
+    worklet3/regression.cpp worklet2/execution.cpp worklet2/alu/execution_alu.cpp worklet2/flags_operands/execution_flags.cpp worklet2/flags_operands/operands.cpp worklet2/movement_stack/execution_data.cpp worklet2/control_flow/execution_control.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -DWORKLET3_SOURCE_DIR='"$(CURDIR)"' -o $@ $^
 
 $(BUILD)/worklet3: worklet3/main.cpp worklet3/loader.cpp \
     worklet3/tracer.cpp worklet3/runner.cpp worklet3/regression.cpp \
-    worklet2/execution.cpp worklet2/operands.cpp $(ALL) | $(BUILD)
+    worklet2/execution.cpp worklet2/alu/execution_alu.cpp worklet2/flags_operands/execution_flags.cpp worklet2/flags_operands/operands.cpp worklet2/movement_stack/execution_data.cpp worklet2/control_flow/execution_control.cpp $(ALL) | $(BUILD)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 testw3: $(BUILD)/test_worklet3

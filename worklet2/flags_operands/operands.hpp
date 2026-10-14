@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include "../task4_instruction_dispatch/instruction.hpp"
-#include "../task1_cpu_segmentation/cpu_state.hpp"
+#include "../../task4_instruction_dispatch/instruction.hpp"
+#include "../../task1_cpu_segmentation/cpu_state.hpp"
 namespace emu {
 uint16_t effectiveOffset(const CPUState&, const Operand&);
 uint32_t readOperand(const CPUState&, const Operand&, uint8_t width = 0);

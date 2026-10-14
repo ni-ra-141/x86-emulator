@@ -23,7 +23,7 @@ This project models 16-bit 8086 CPU state, fetches and decodes instructions, and
 | `task2_fetch_queue/` | **B** | `instruction_queue.hpp/.cpp` `fetcher.hpp/.cpp` | Circular prefetch queue, CS:IP fetching, `consume()` advances IP, **auto-flush on jumps** |
 | `task3_decoder/` | **C** | `decoder.hpp/.cpp` | prefix → opcode → ModR/M → displacement → immediate → length. Pure function: bytes in, `DecodeResult` out |
 | `task4_instruction_dispatch/` | **D** | `instruction.hpp/.cpp` `opcode_table.hpp/.cpp` `dispatch_table.hpp/.cpp` `w1_pipeline.hpp/.cpp` `main.cpp` | **DecodedInstruction** (contract #2), opcode table, hash-map **DispatchTable** (contract #3), `Worklet1` integration class, demo, validation suite |
-| `worklet2/` | - | `execution.hpp/.cpp` `operands.hpp/.cpp` `tests/` | Operand reads/writes, effective addresses, flag helpers, and registered instruction execution handlers |
+| `worklet2/` | - | `alu/`, `flags_operands/`, `movement_stack/`, `control_flow/`, `execution.hpp/.cpp`, `tests/` | Contributor-owned instruction families, shared operand/flag helpers, and the stable Worklet 1 registration interface |
 | `common/mini_test.hpp` | - | | tiny test framework (no external libs) |
 | `tools/` | - | | objdump cross-check scripts |
 
