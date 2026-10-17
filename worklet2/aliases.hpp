@@ -43,6 +43,54 @@ namespace emu::control_flow_aliases {
     constexpr Flag DF = Flag::DF;
     constexpr Flag OF = Flag::OF;
 
+    // Movement and stack instructions
+    constexpr Mnemonic MOV   = Mnemonic::MOV;
+    constexpr Mnemonic XCHG  = Mnemonic::XCHG;
+    constexpr Mnemonic LEA   = Mnemonic::LEA;
+    constexpr Mnemonic PUSH  = Mnemonic::PUSH;
+    constexpr Mnemonic POP   = Mnemonic::POP;
+    constexpr Mnemonic PUSHF = Mnemonic::PUSHF;
+    constexpr Mnemonic POPF  = Mnemonic::POPF;
+    constexpr Mnemonic SAHF  = Mnemonic::SAHF;
+    constexpr Mnemonic LAHF  = Mnemonic::LAHF;
+
+    // Arithmetic and logical instructions
+    constexpr Mnemonic ADD  = Mnemonic::ADD;
+    constexpr Mnemonic ADC  = Mnemonic::ADC;
+    constexpr Mnemonic SUB  = Mnemonic::SUB;
+    constexpr Mnemonic SBB  = Mnemonic::SBB;
+    constexpr Mnemonic AND  = Mnemonic::AND;
+    constexpr Mnemonic OR   = Mnemonic::OR;
+    constexpr Mnemonic XOR  = Mnemonic::XOR;
+    constexpr Mnemonic CMP  = Mnemonic::CMP;
+    constexpr Mnemonic TEST = Mnemonic::TEST;
+    constexpr Mnemonic INC  = Mnemonic::INC;
+    constexpr Mnemonic DEC  = Mnemonic::DEC;
+    constexpr Mnemonic NEG  = Mnemonic::NEG;
+    constexpr Mnemonic NOT  = Mnemonic::NOT;
+    constexpr Mnemonic MUL  = Mnemonic::MUL;
+    constexpr Mnemonic IMUL = Mnemonic::IMUL;
+    constexpr Mnemonic DIV  = Mnemonic::DIV;
+    constexpr Mnemonic IDIV = Mnemonic::IDIV;
+    constexpr Mnemonic CBW  = Mnemonic::CBW;
+    constexpr Mnemonic CWD  = Mnemonic::CWD;
+    constexpr Mnemonic ROL  = Mnemonic::ROL;
+    constexpr Mnemonic ROR  = Mnemonic::ROR;
+    constexpr Mnemonic RCL  = Mnemonic::RCL;
+    constexpr Mnemonic RCR  = Mnemonic::RCR;
+    constexpr Mnemonic SHL  = Mnemonic::SHL;
+    constexpr Mnemonic SHR  = Mnemonic::SHR;
+    constexpr Mnemonic SAR  = Mnemonic::SAR;
+
+    // Flag control instructions
+    constexpr Mnemonic CLC = Mnemonic::CLC;
+    constexpr Mnemonic STC = Mnemonic::STC;
+    constexpr Mnemonic CMC = Mnemonic::CMC;
+    constexpr Mnemonic CLI = Mnemonic::CLI;
+    constexpr Mnemonic STI = Mnemonic::STI;
+    constexpr Mnemonic CLD = Mnemonic::CLD;
+    constexpr Mnemonic STD = Mnemonic::STD;
+
     // Conditional jump mnemonics
     constexpr Mnemonic JO   = Mnemonic::JO;
     constexpr Mnemonic JNO  = Mnemonic::JNO;
@@ -92,5 +140,11 @@ namespace emu::control_flow_aliases {
     constexpr OperandType Imm16 = OperandType::Imm16;
     constexpr OperandType Mem = OperandType::Mem;
     constexpr OperandType Rel = OperandType::Rel;
+
+    // Explicit operand-type names avoid confusion with register aliases.
+    constexpr OperandType OpImm8 = OperandType::Imm8;
+    constexpr OperandType OpImm16 = OperandType::Imm16;
+    constexpr OperandType OpMem = OperandType::Mem;
+    constexpr OperandType OpRel = OperandType::Rel;
 
 }  // namespace emu::control_flow_aliases
