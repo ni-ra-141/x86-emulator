@@ -73,14 +73,14 @@ void pop(CPUState& c, const DecodedInstruction& i) {
     writeOperand(c, op, c.pop16(), 16);
 }
 
-}
+}  // namespace
 
 void registerMovementStackHandlers(DispatchTable& table) {
-    table.registerHandler(Mnemonic::MOV,  checkedHandler<mov>);
-    table.registerHandler(Mnemonic::LEA,  checkedHandler<lea>);
+    table.registerHandler(Mnemonic::MOV, checkedHandler<mov>);
+    table.registerHandler(Mnemonic::LEA, checkedHandler<lea>);
     table.registerHandler(Mnemonic::XCHG, checkedHandler<xchg>);
     table.registerHandler(Mnemonic::PUSH, checkedHandler<push>);
-    table.registerHandler(Mnemonic::POP,  checkedHandler<pop>);
+    table.registerHandler(Mnemonic::POP, checkedHandler<pop>);
 }
 
-}
+}  // namespace emu
