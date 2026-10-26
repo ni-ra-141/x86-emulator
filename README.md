@@ -43,6 +43,50 @@ ctest --test-dir build-cmake --output-on-failure
 ./build/w1_demo prog.bin     # decode any raw 8086 binary
 ```
 
+## Assemble and run an `.asm` source file
+
+Install NASM using your operating system's package manager or the instructions
+at [nasm.us](https://www.nasm.us/). The launcher requires the `nasm` command on
+`PATH`; it does not install or update system packages. Build Worklet 3 first
+with `make build/worklet3` or the CMake commands above, then run:
+
+```bash
+./tools/run_asm.sh program.asm
+./tools/run_asm.sh program.asm --trace
+```
+
+The launcher asks NASM for a flat binary and passes that raw machine code to
+the existing Worklet 3 loader and execution pipeline. A source file should
+declare 16-bit code and use origin zero, for example:
+
+```nasm
+BITS 16
+ORG 0
+
+mov ax, 5
+add ax, 3
+hlt
+```
+
+The runner loads bytes at `0100:0000`; origin zero makes source labels and
+relative branches use offsets from the start of that loaded binary. NASM
+accepting an instruction does not mean this emulator implements it. Worklet 1
+and Worklet 2 support only the subset listed below, and execution reports
+unsupported or invalid encodings as emulator errors. NASM syntax or assembly
+errors are printed by NASM, and the emulator is not started when assembly
+fails. The launcher uses an isolated temporary directory for generated output
+and removes it on exit; it does not overwrite source or binary files.
+
+To run a raw machine-code binary directly, keep using the existing interface:
+
+```bash
+./build/worklet3 program.bin
+./build/worklet3 program.bin --trace
+```
+
+The loader expects non-empty raw bytes with no executable header. It does not
+load ELF, COM headers, or linked object files.
+
 Sample output:
 ```
 0100:0000  8B 47 08             mov ax, [bx+0x8]
