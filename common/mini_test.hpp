@@ -11,15 +11,17 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 namespace mini_test {
 
 struct TestCase {
-    std::string name;
-    std::function<void()> fn;
+    string name;
+    function<void()> fn;
 };
 
-inline std::vector<TestCase>& registry() {
-    static std::vector<TestCase> r;
+inline vector<TestCase>& registry() {
+    static vector<TestCase> r;
     return r;
 }
 inline int& failureCount() {
@@ -27,7 +29,9 @@ inline int& failureCount() {
     return f;
 }
 struct Registrar {
-    Registrar(const std::string& n, std::function<void()> f) { registry().push_back({n, std::move(f)}); }
+    Registrar(const string& n, function<void()> f) {
+        registry().push_back({n, move(f)});
+    }
 };
 
 }  // namespace mini_test
@@ -41,7 +45,7 @@ struct Registrar {
     do {                                                                                \
         if (!(cond)) {                                                                  \
             ++mini_test::failureCount();                                                \
-            std::cerr << "    FAILED " << __FILE__ << ":" << __LINE__ << "  " #cond "\n"; \
+            cerr << "    FAILED " << __FILE__ << ":" << __LINE__ << "  " #cond "\n"; \
         }                                                                               \
     } while (0)
 
@@ -51,10 +55,10 @@ struct Registrar {
         auto vb = (b);                                                                   \
         if (!(va == vb)) {                                                               \
             ++mini_test::failureCount();                                                 \
-            std::ostringstream os;                                                       \
+            ostringstream os;                                                       \
             os << "    FAILED " << __FILE__ << ":" << __LINE__ << "  " #a " == " #b      \
                << "   (got " << va << ", expected " << vb << ")\n";                      \
-            std::cerr << os.str();                                                       \
+            cerr << os.str();                                                       \
         }                                                                                \
     } while (0)
 
@@ -64,7 +68,7 @@ struct Registrar {
         try { expr; } catch (...) { threw = true; }                                     \
         if (!threw) {                                                                   \
             ++mini_test::failureCount();                                                \
-            std::cerr << "    FAILED " << __FILE__ << ":" << __LINE__                   \
+            cerr << "    FAILED " << __FILE__ << ":" << __LINE__                   \
                       << "  expected exception from: " #expr "\n";                      \
         }                                                                               \
     } while (0)
@@ -77,8 +81,8 @@ inline int run_all_tests() {
         ++total;
         bool ok = (mini_test::failureCount() == before);
         if (!ok) ++failedTests;
-        std::cout << (ok ? "[ PASS ] " : "[ FAIL ] ") << t.name << "\n";
+        cout << (ok ? "[ PASS ] " : "[ FAIL ] ") << t.name << "\n";
     }
-    std::cout << "\n" << (total - failedTests) << "/" << total << " tests passed\n";
+    cout << "\n" << (total - failedTests) << "/" << total << " tests passed\n";
     return failedTests == 0 ? 0 : 1;
 }
